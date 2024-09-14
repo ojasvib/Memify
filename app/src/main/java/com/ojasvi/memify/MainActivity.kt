@@ -7,21 +7,25 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,27 +61,36 @@ fun MainScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun ImagePicker(modifier: Modifier = Modifier){
-    var imageUri by remember { mutableStateOf<Uri?>(null)}
-    
-    val imagePickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent())
-    { uri: Uri? ->
+fun ImagePicker(modifier: Modifier = Modifier) {
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
         imageUri = uri
     }
-    
-    LaunchedEffect(Unit) {
-        imagePickerLauncher.launch("image/*")
-    }
-    
-    
+
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize()
-    ){
+        modifier = Modifier.fillMaxSize().padding(20.dp)
+    ) {
+        Button(
+            onClick = { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            modifier = Modifier.fillMaxWidth().height(50.dp)
+        ) {
+            Text(text = "Open Gallery Picker")
+        }
+
         imageUri?.let { uri ->
-            Image(painter = rememberAsyncImagePainter(uri), contentDescription = null,
-                modifier = Modifier.size(200.dp).clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape))
+            Image(
+                painter = rememberAsyncImagePainter(uri), contentDescription = null,
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
+            )
         }
     }
 }
