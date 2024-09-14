@@ -15,9 +15,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -78,7 +77,7 @@ fun ImagePicker(modifier: Modifier = Modifier) {
     ) {
         Button(
             onClick = { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
+            modifier = Modifier.fillMaxWidth().wrapContentHeight()
         ) {
             Text(text = "Open Gallery Picker")
         }
@@ -87,7 +86,7 @@ fun ImagePicker(modifier: Modifier = Modifier) {
             Image(
                 painter = rememberAsyncImagePainter(uri), contentDescription = null,
                 modifier = Modifier
-                    .size(200.dp)
+                    .fillMaxWidth(0.7f)
                     .clip(CircleShape)
                     .border(2.dp, MaterialTheme.colorScheme.onBackground, CircleShape)
             )
