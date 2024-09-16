@@ -1,6 +1,5 @@
 package com.ojasvi.memify.ui.screens
 
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -58,36 +57,9 @@ internal fun PhotoReasoningRoute(
 
     val photoReasoningUiState by viewModel.uiState.collectAsState()
 
-    val coroutineScope = rememberCoroutineScope()
-    val imageRequestBuilder = ImageRequest.Builder(LocalContext.current)
-    val imageLoader = ImageLoader.Builder(LocalContext.current).build()
-
     PhotoReasoningScreen(
         uiState = photoReasoningUiState,
-        onReasonClicked = { inputText, selectedImage ->
-            coroutineScope.launch {
-                val bitmap = try {
-                    val imageReq = imageRequestBuilder.data(selectedImage)
-                        .size(768)
-                        .precision(Precision.EXACT)
-                        .build()
-
-                    val result = imageLoader.execute(imageReq)
-                    if (result is SuccessResult) {
-                        (result.drawable as BitmapDrawable).bitmap
-                    } else {
-                        null
-                    }
-                } catch (e: Exception) {
-                    null
-                }
-
-                // Call reason function with inputText and bitmap
-                if (bitmap != null) {
-                    viewModel.reason(inputText, bitmap)
-                }
-            }
-        }
+        onReasonClicked = viewModel::reason
     )
 }
 
@@ -235,10 +207,4 @@ fun PhotoReasoningScreen(
             }
         }
     }
-}
-
-@Composable
-@Preview(showSystemUi = true)
-fun PhotoReasoningScreenPreview() {
-    PhotoReasoningScreen()
 }
