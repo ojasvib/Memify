@@ -4,10 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.rememberScrollState
@@ -19,52 +21,43 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import coil.size.Precision
 import com.ojasvi.memify.PhotoReasoningUiState
 import com.ojasvi.memify.PhotoReasoningViewModel
 import com.ojasvi.memify.R
-import kotlinx.coroutines.launch
 
 @Composable
-internal fun PhotoReasoningRoute(
+fun PhotoReasoningScreen(
+    modifier: Modifier = Modifier.navigationBarsPadding(),
     viewModel: PhotoReasoningViewModel = viewModel()
 ) {
 
     val photoReasoningUiState by viewModel.uiState.collectAsState()
 
-    PhotoReasoningScreen(
+    PhotoReasoningContents(
         uiState = photoReasoningUiState,
         onReasonClicked = viewModel::reason
     )
 }
 
 @Composable
-fun PhotoReasoningScreen(
+fun PhotoReasoningContents(
     uiState: PhotoReasoningUiState = PhotoReasoningUiState.Loading,
     onReasonClicked: (String, Uri) -> Unit = { _, _ -> }
 ) {
@@ -89,7 +82,8 @@ fun PhotoReasoningScreen(
             contentDescription = null,
             modifier = Modifier
                 .padding(4.dp)
-                .fillMaxWidth(0.5f).align(Alignment.CenterHorizontally)
+                .fillMaxWidth(0.5f)
+                .align(Alignment.CenterHorizontally)
         )
         Card(
             modifier = Modifier.fillMaxWidth()
@@ -97,21 +91,18 @@ fun PhotoReasoningScreen(
             Row(
                 modifier = Modifier.padding(top = 16.dp)
             ) {
-                IconButton(
-                    onClick = {
-                        pickMedia.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                        )
-                    },
+                Icon(
+                    Icons.Rounded.Add,
+                    contentDescription = stringResource(R.string.add_image),
                     modifier = Modifier
                         .padding(all = 4.dp)
                         .align(Alignment.CenterVertically)
-                ) {
-                    Icon(
-                        Icons.Rounded.Add,
-                        contentDescription = stringResource(R.string.add_image),
-                    )
-                }
+                        .clickable {
+                            pickMedia.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        }
+                )
                 OutlinedTextField(
                     value = userQuestion,
                     label = { Text(stringResource(R.string.reason_label)) },
@@ -120,18 +111,16 @@ fun PhotoReasoningScreen(
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
                 )
-                TextButton(
-                    onClick = {
-                        if (userQuestion.isNotBlank()) {
-                            imageUri?.let { onReasonClicked(userQuestion, it) }
-                        }
-                    },
+                Text(text = stringResource(R.string.action_go),
                     modifier = Modifier
                         .padding(all = 4.dp)
                         .align(Alignment.CenterVertically)
-                ) {
-                    Text(stringResource(R.string.action_go))
-                }
+                        .clickable {
+                            if (userQuestion.isNotBlank()) {
+                                imageUri?.let { onReasonClicked(userQuestion, it) }
+                            }
+                        }
+                )
             }
 
         }
