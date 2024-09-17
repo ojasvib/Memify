@@ -44,7 +44,8 @@ class PhotoReasoningViewModel(
     ) {
 
         _uiState.value = PhotoReasoningUiState.Loading
-        val prompt = "Look at the image(s), and then answer the following question: $userInput"
+        val prompt =
+            "Generate a meme caption that fits this photo. The response should contain only the caption without any quotes. Consider additional user input: $userInput"
 
         viewModelScope.launch(Dispatchers.IO) {
 
