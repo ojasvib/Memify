@@ -70,6 +70,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
+    implementation ("dev.shreyaspatil:capturable:2.1.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

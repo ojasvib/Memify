@@ -1,9 +1,12 @@
 package com.ojasvi.memify.ui.screens
 
+import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,18 +29,23 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -46,6 +54,9 @@ import coil.compose.AsyncImage
 import com.ojasvi.memify.PhotoReasoningUiState
 import com.ojasvi.memify.PhotoReasoningViewModel
 import com.ojasvi.memify.R
+import dev.shreyaspatil.capturable.capturable
+import dev.shreyaspatil.capturable.controller.rememberCaptureController
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 @Composable
@@ -62,6 +73,7 @@ fun PhotoReasoningScreen(
     )
 }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeApi::class)
 @Composable
 fun PhotoReasoningContents(
     uiState: PhotoReasoningUiState = PhotoReasoningUiState.Loading,
@@ -69,19 +81,48 @@ fun PhotoReasoningContents(
 ) {
     var imageUri by rememberSaveable { mutableStateOf<Uri>(Uri.EMPTY) }
     var prompt by rememberSaveable { mutableStateOf("") }
-
+    val captureController = rememberCaptureController()
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        val scope = rememberCoroutineScope()
         Box(
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp)
+                .capturable(captureController)
         ) {
             AsyncImage(
                 model = imageUri,
                 contentDescription = "",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().clickable {
+                    scope.launch {
+                        val bitmapAsync = captureController.captureAsync()
+                        try {
+                            val bitmap = bitmapAsync.await()
+                            val bitmapPath = MediaStore.Images.Media.insertImage(
+                                context.contentResolver,
+                                bitmap.asAndroidBitmap(),
+                                "palette",
+                                "share palette"
+                            )
+
+                            val bitmapUri = Uri.parse(bitmapPath)
+
+                            // Create the share intent
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "image/png"
+                                putExtra(Intent.EXTRA_STREAM, bitmapUri)
+                            }
+
+                            // Start the chooser activity
+                            context.startActivity(Intent.createChooser(shareIntent, "Share"))
+                        } catch (error: Throwable) {
+                            // Error occurred, do something.
+                        }
+                    }
+                },
                 contentScale = ContentScale.Crop
             )
 
