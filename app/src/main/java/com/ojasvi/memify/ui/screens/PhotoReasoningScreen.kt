@@ -4,20 +4,16 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
@@ -39,8 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -51,7 +46,6 @@ import coil.compose.AsyncImage
 import com.ojasvi.memify.PhotoReasoningUiState
 import com.ojasvi.memify.PhotoReasoningViewModel
 import com.ojasvi.memify.R
-import org.intellij.lang.annotations.PrintFormat
 import kotlin.math.roundToInt
 
 @Composable
@@ -101,6 +95,8 @@ fun PhotoReasoningContents(
                 }
 
                 is PhotoReasoningUiState.Success -> {
+                    var scale by remember { mutableFloatStateOf(1f) }
+                    var rotationAngle by remember { mutableFloatStateOf(0f) }
                     var offsetX by remember { mutableFloatStateOf(0f) }
                     var offsetY by remember { mutableFloatStateOf(0f) }
 
@@ -112,13 +108,21 @@ fun PhotoReasoningContents(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) } // Move the button
+                            .graphicsLayer(scaleX = scale, scaleY = scale, rotationZ = rotationAngle) //rotate and zoom
                             .pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDrag = { _, dragAmount ->
-                                        offsetX += dragAmount.x
-                                        offsetY += dragAmount.y
+                                detectTransformGestures { _, pan, zoom, rotation ->
+                                    // Handle one-finger drag (by checking pan for drag amount)
+                                    if (pan != androidx.compose.ui.geometry.Offset.Zero) {
+                                        offsetX += pan.x
+                                        offsetY += pan.y
                                     }
-                                )
+
+                                    // Handle two-finger zoom
+                                    scale *= zoom
+
+                                    // Handle two-finger rotation
+                                    rotationAngle += rotation
+                                }
                             }
                     ) {
                         Row(
@@ -167,7 +171,7 @@ fun PhotoReasoningContents(
 }
 
 @Composable
-private fun ColumnScope.InputField(
+private fun InputField(
     prompt: String,
     onPromptChanged: (String) -> Unit,
     onSendClicked: () -> Unit,
