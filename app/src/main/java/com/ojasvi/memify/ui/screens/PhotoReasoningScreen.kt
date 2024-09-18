@@ -107,14 +107,23 @@ fun PhotoReasoningContents(
                         ),
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) } // Move the button
-                            .graphicsLayer(scaleX = scale, scaleY = scale, rotationZ = rotationAngle) //rotate and zoom
+                            .offset {
+                                IntOffset(
+                                    offsetX.roundToInt(),
+                                    offsetY.roundToInt()
+                                )
+                            } // Move the button
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                rotationZ = rotationAngle
+                            ) //rotate and zoom
                             .pointerInput(Unit) {
                                 detectTransformGestures { _, pan, zoom, rotation ->
                                     // Handle one-finger drag (by checking pan for drag amount)
                                     if (pan != androidx.compose.ui.geometry.Offset.Zero) {
-                                        offsetX += pan.x
-                                        offsetY += pan.y
+                                        offsetX += scale * pan.x
+                                        offsetY += scale * pan.y
                                     }
 
                                     // Handle two-finger zoom
