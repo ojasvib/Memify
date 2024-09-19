@@ -51,8 +51,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.ojasvi.memify.PhotoReasoningUiState
-import com.ojasvi.memify.PhotoReasoningViewModel
 import com.ojasvi.memify.R
 import dev.shreyaspatil.capturable.capturable
 import dev.shreyaspatil.capturable.controller.CaptureController

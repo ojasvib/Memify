@@ -1,4 +1,4 @@
-package com.ojasvi.memify
+package com.ojasvi.memify.ui.screens
 
 import android.app.Application
 import android.graphics.drawable.BitmapDrawable
