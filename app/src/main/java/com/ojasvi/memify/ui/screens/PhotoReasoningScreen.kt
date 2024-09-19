@@ -55,6 +55,7 @@ import com.ojasvi.memify.PhotoReasoningUiState
 import com.ojasvi.memify.PhotoReasoningViewModel
 import com.ojasvi.memify.R
 import dev.shreyaspatil.capturable.capturable
+import dev.shreyaspatil.capturable.controller.CaptureController
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -82,133 +83,18 @@ fun PhotoReasoningContents(
     var imageUri by rememberSaveable { mutableStateOf<Uri>(Uri.EMPTY) }
     var prompt by rememberSaveable { mutableStateOf("") }
     val captureController = rememberCaptureController()
-    val context = LocalContext.current
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        val scope = rememberCoroutineScope()
         Box(
             modifier = Modifier
                 .weight(1f)
                 .padding(16.dp)
                 .capturable(captureController)
         ) {
-            AsyncImage(
-                model = imageUri,
-                contentDescription = "",
-                modifier = Modifier.fillMaxSize().clickable {
-                    scope.launch {
-                        val bitmapAsync = captureController.captureAsync()
-                        try {
-                            val bitmap = bitmapAsync.await()
-                            val bitmapPath = MediaStore.Images.Media.insertImage(
-                                context.contentResolver,
-                                bitmap.asAndroidBitmap(),
-                                "palette",
-                                "share palette"
-                            )
-
-                            val bitmapUri = Uri.parse(bitmapPath)
-
-                            // Create the share intent
-                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                type = "image/png"
-                                putExtra(Intent.EXTRA_STREAM, bitmapUri)
-                            }
-
-                            // Start the chooser activity
-                            context.startActivity(Intent.createChooser(shareIntent, "Share"))
-                        } catch (error: Throwable) {
-                            // Error occurred, do something.
-                        }
-                    }
-                },
-                contentScale = ContentScale.Crop
-            )
-
-            when (uiState) {
-                PhotoReasoningUiState.Initial -> {}
-
-                PhotoReasoningUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                is PhotoReasoningUiState.Success -> {
-                    var scale by remember { mutableFloatStateOf(1f) }
-                    var rotationAngle by remember { mutableFloatStateOf(0f) }
-                    var offsetX by remember { mutableFloatStateOf(0f) }
-                    var offsetY by remember { mutableFloatStateOf(0f) }
-
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .offset {
-                                IntOffset(
-                                    offsetX.roundToInt(),
-                                    offsetY.roundToInt()
-                                )
-                            } // Move the button
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                rotationZ = rotationAngle
-                            ) //rotate and zoom
-                            .pointerInput(Unit) {
-                                detectTransformGestures { _, pan, zoom, rotation ->
-                                    // Handle one-finger drag (by checking pan for drag amount)
-                                    if (pan != androidx.compose.ui.geometry.Offset.Zero) {
-                                        offsetX += scale * pan.x
-                                        offsetY += scale * pan.y
-                                    }
-
-                                    // Handle two-finger zoom
-                                    scale *= zoom
-
-                                    // Handle two-finger rotation
-                                    rotationAngle += rotation
-                                }
-                            }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(all = 16.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = uiState.outputText, // TODO(thatfiredev): Figure out Markdown support
-                                color = MaterialTheme.colorScheme.onSecondary,
-                                modifier = Modifier
-                                    .padding(start = 16.dp)
-                                    .fillMaxWidth()
-                            )
-                        }
-                    }
-                }
-
-                is PhotoReasoningUiState.Error -> {
-                    Card(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp)
-                            .fillMaxWidth(),
-                        shape = MaterialTheme.shapes.large,
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer
-                        )
-                    ) {
-                        Text(
-                            text = uiState.errorMessage,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(all = 16.dp)
-                        )
-                    }
-                }
-            }
+            sourceImage(imageUri, captureController)
+            overlayTextCard(uiState = uiState)
         }
 
         InputField(
@@ -217,6 +103,137 @@ fun PhotoReasoningContents(
             onSendClicked = { onReasonClicked(prompt, imageUri) },
             onImageSelected = { imageUri = it }
         )
+    }
+}
+
+@OptIn(ExperimentalComposeApi::class)
+@Composable
+private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    AsyncImage(
+        model = imageUri,
+        contentDescription = "",
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable {
+                scope.launch {
+                    val bitmapAsync = captureController.captureAsync()
+                    try {
+                        val bitmap = bitmapAsync.await()
+                        val bitmapPath = MediaStore.Images.Media.insertImage(
+                            context.contentResolver,
+                            bitmap.asAndroidBitmap(),
+                            "palette",
+                            "share palette"
+                        )
+
+                        val bitmapUri = Uri.parse(bitmapPath)
+
+                        // Create the share intent
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "image/png"
+                            putExtra(Intent.EXTRA_STREAM, bitmapUri)
+                        }
+
+                        // Start the chooser activity
+                        context.startActivity(Intent.createChooser(shareIntent, "Share"))
+                    } catch (error: Throwable) {
+                        // Error occurred, do something.
+                    }
+                }
+            },
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+private fun overlayTextCard(uiState: PhotoReasoningUiState) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (uiState) {
+
+            PhotoReasoningUiState.Initial -> {}
+
+            PhotoReasoningUiState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            is PhotoReasoningUiState.Success -> {
+                var scale by remember { mutableFloatStateOf(1f) }
+                var rotationAngle by remember { mutableFloatStateOf(0f) }
+                var offsetX by remember { mutableFloatStateOf(0f) }
+                var offsetY by remember { mutableFloatStateOf(0f) }
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset {
+                            IntOffset(
+                                offsetX.roundToInt(),
+                                offsetY.roundToInt()
+                            )
+                        } // Move the button
+                        .graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            rotationZ = rotationAngle
+                        ) //rotate and zoom
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, rotation ->
+                                // Handle one-finger drag (by checking pan for drag amount)
+                                if (pan != androidx.compose.ui.geometry.Offset.Zero) {
+                                    offsetX += scale * pan.x
+                                    offsetY += scale * pan.y
+                                }
+
+                                // Handle two-finger zoom
+                                scale *= zoom
+
+                                // Handle two-finger rotation
+                                rotationAngle += rotation
+                            }
+                        }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(all = 16.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = uiState.outputText, // TODO(thatfiredev): Figure out Markdown support
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                }
+            }
+
+            is PhotoReasoningUiState.Error -> {
+                Card(
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = uiState.errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(all = 16.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
