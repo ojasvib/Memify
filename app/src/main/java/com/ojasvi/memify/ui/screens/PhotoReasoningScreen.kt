@@ -22,14 +22,17 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ExperimentalComposeApi
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -145,6 +148,7 @@ private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun overlayTextCard(uiState: PhotoReasoningUiState) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -203,13 +207,22 @@ private fun overlayTextCard(uiState: PhotoReasoningUiState) {
                             .padding(all = 16.dp)
                             .fillMaxWidth()
                     ) {
-                        Text(
-                            text = uiState.outputText, // TODO(thatfiredev): Figure out Markdown support
-                            color = MaterialTheme.colorScheme.onSecondary,
+                        var textFieldValue by remember { mutableStateOf(uiState.outputText) }
+
+                        LaunchedEffect(uiState.outputText) {
+                            textFieldValue = uiState.outputText
+                        }
+
+                        TextField(
+                            value = textFieldValue,
+                            onValueChange = { newText ->
+                                textFieldValue = newText
+                            },
                             modifier = Modifier
                                 .padding(start = 16.dp)
                                 .fillMaxWidth()
                         )
+
                     }
                 }
             }
