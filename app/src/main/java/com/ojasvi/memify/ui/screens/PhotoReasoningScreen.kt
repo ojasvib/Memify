@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
@@ -29,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ExperimentalComposeApi
 import androidx.compose.runtime.LaunchedEffect
@@ -50,8 +50,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.ojasvi.memify.R
@@ -213,16 +215,20 @@ private fun overlayTextCard(uiState: PhotoReasoningUiState) {
                             textFieldValue = uiState.outputText
                         }
 
-                        TextField(
-                            value = textFieldValue,
+                        BasicTextField(value = textFieldValue,
                             onValueChange = { newText ->
                                 textFieldValue = newText
                             },
+                            textStyle = TextStyle(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                fontSize = 16.sp
+                            ),
                             modifier = Modifier
-                                .padding(start = 16.dp)
-                                .fillMaxWidth()
+                                .fillMaxWidth(),
+                            decorationBox = { innerTextField ->
+                                innerTextField()
+                            }
                         )
-
                     }
                 }
             }
