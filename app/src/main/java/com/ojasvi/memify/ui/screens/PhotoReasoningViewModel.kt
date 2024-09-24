@@ -37,6 +37,10 @@ class PhotoReasoningViewModel(
         generationConfig = config
     )
 
+    fun resetToInitialUiState(){
+        _uiState.value = PhotoReasoningUiState.Initial
+    }
+
     fun reason(
         userInput: String,
         selectedImage: Uri?
