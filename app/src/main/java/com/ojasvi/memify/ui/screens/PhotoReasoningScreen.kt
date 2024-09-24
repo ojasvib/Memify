@@ -81,7 +81,7 @@ fun PhotoReasoningScreen(
 @Composable
 fun PhotoReasoningContents(
     uiState: PhotoReasoningUiState = PhotoReasoningUiState.Loading,
-    onReasonClicked: (String, Uri) -> Unit = { _, _ -> },
+    onReasonClicked: (String, Uri) -> Unit,
     onUpdateImage: () -> Unit
 ) {
     var imageUri by rememberSaveable { mutableStateOf<Uri>(Uri.EMPTY) }
@@ -95,6 +95,16 @@ fun PhotoReasoningContents(
         var rotationAngle by remember { mutableFloatStateOf(0f) }
         var offsetX by remember { mutableFloatStateOf(0f) }
         var offsetY by remember { mutableFloatStateOf(0f) }
+
+        fun resetState() {
+            onUpdateImage()
+            prompt = ""
+            scale = 1f
+            rotationAngle = 0f
+            offsetX = 0f
+            offsetY = 0f
+        }
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -102,16 +112,16 @@ fun PhotoReasoningContents(
                 .capturable(captureController)
         ) {
             sourceImage(imageUri, captureController)
-            overlayTextCard(uiState = uiState,
+            OverlayTextCard(uiState = uiState,
                 scale,
                 rotationAngle,
                 offsetX,
                 offsetY,
-                { xDrag, yDrag ->
+                onDrag = { xDrag, yDrag ->
                     offsetX += xDrag
                     offsetY += yDrag
                 },
-                { zoom, rotation ->
+                onPinchOrRotate = { zoom, rotation ->
                     // Handle two-finger zoom
                     scale *= zoom
                     // Handle two-finger rotation
@@ -124,14 +134,8 @@ fun PhotoReasoningContents(
             onPromptChanged = { prompt = it },
             onSendClicked = { onReasonClicked(prompt, imageUri) },
             onImageSelected = { selectedImageUri ->
-                onUpdateImage()
-                prompt = ""
-                scale = 1f
-                rotationAngle = 0f
-                offsetX = 0f
-                offsetY = 0f
+                resetState()
                 imageUri = selectedImageUri
-
             }
         )
     }
@@ -179,7 +183,7 @@ private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
 }
 
 @Composable
-private fun overlayTextCard(
+private fun OverlayTextCard(
     uiState: PhotoReasoningUiState,
     scale: Float,
     rotationAngle: Float,
