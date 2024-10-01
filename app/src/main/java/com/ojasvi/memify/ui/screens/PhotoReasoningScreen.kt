@@ -23,7 +23,6 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,15 +72,17 @@ fun PhotoReasoningScreen(
 
     PhotoReasoningContents(
         uiState = photoReasoningUiState,
-        onReasonClicked = viewModel::reason
+        onReasonClicked = viewModel::reason,
+        onUpdateImage= viewModel::resetToInitialUiState
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PhotoReasoningContents(
     uiState: PhotoReasoningUiState = PhotoReasoningUiState.Loading,
-    onReasonClicked: (String, Uri) -> Unit = { _, _ -> }
+    onReasonClicked: (String, Uri) -> Unit,
+    onUpdateImage: () -> Unit
 ) {
     var imageUri by rememberSaveable { mutableStateOf<Uri>(Uri.EMPTY) }
     var prompt by rememberSaveable { mutableStateOf("") }
@@ -90,6 +91,20 @@ fun PhotoReasoningContents(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
+        var scale by remember { mutableFloatStateOf(1f) }
+        var rotationAngle by remember { mutableFloatStateOf(0f) }
+        var offsetX by remember { mutableFloatStateOf(0f) }
+        var offsetY by remember { mutableFloatStateOf(0f) }
+
+        fun resetState() {
+            onUpdateImage()
+            prompt = ""
+            scale = 1f
+            rotationAngle = 0f
+            offsetX = 0f
+            offsetY = 0f
+        }
+
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -97,14 +112,31 @@ fun PhotoReasoningContents(
                 .capturable(captureController)
         ) {
             sourceImage(imageUri, captureController)
-            overlayTextCard(uiState = uiState)
+            OverlayTextCard(uiState = uiState,
+                scale,
+                rotationAngle,
+                offsetX,
+                offsetY,
+                onDrag = { xDrag, yDrag ->
+                    offsetX += xDrag
+                    offsetY += yDrag
+                },
+                onPinchOrRotate = { zoom, rotation ->
+                    // Handle two-finger zoom
+                    scale *= zoom
+                    // Handle two-finger rotation
+                    rotationAngle += rotation
+                })
         }
 
         InputField(
             prompt = prompt,
             onPromptChanged = { prompt = it },
             onSendClicked = { onReasonClicked(prompt, imageUri) },
-            onImageSelected = { imageUri = it }
+            onImageSelected = { selectedImageUri ->
+                resetState()
+                imageUri = selectedImageUri
+            }
         )
     }
 }
@@ -150,9 +182,16 @@ private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun overlayTextCard(uiState: PhotoReasoningUiState) {
+private fun OverlayTextCard(
+    uiState: PhotoReasoningUiState,
+    scale: Float,
+    rotationAngle: Float,
+    offsetX: Float,
+    offsetY: Float,
+    onDrag: (Float, Float) -> Unit,
+    onPinchOrRotate: (Float, Float) -> Unit
+) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
 
@@ -165,10 +204,6 @@ private fun overlayTextCard(uiState: PhotoReasoningUiState) {
             }
 
             is PhotoReasoningUiState.Success -> {
-                var scale by remember { mutableFloatStateOf(1f) }
-                var rotationAngle by remember { mutableFloatStateOf(0f) }
-                var offsetX by remember { mutableFloatStateOf(0f) }
-                var offsetY by remember { mutableFloatStateOf(0f) }
 
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -192,15 +227,9 @@ private fun overlayTextCard(uiState: PhotoReasoningUiState) {
                             detectTransformGestures { _, pan, zoom, rotation ->
                                 // Handle one-finger drag (by checking pan for drag amount)
                                 if (pan != androidx.compose.ui.geometry.Offset.Zero) {
-                                    offsetX += scale * pan.x
-                                    offsetY += scale * pan.y
+                                    onDrag(scale * pan.x, scale * pan.y)
                                 }
-
-                                // Handle two-finger zoom
-                                scale *= zoom
-
-                                // Handle two-finger rotation
-                                rotationAngle += rotation
+                                onPinchOrRotate(zoom, rotation)
                             }
                         }
                 ) {
