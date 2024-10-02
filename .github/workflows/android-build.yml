@@ -1,0 +1,54 @@
+name: Android Build
+
+# Triggers the workflow on push events to the specified branches
+on:
+  push:
+    branches:
+      - main # Specify the branch you want to monitor for pushes
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Set up the required environment (Java, Android SDK, etc.)
+    steps:
+      # Check out the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up JDK
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      # Cache Gradle dependencies
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}
+
+      # Set up the Android SDK
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 31
+          build-tools-version: 31.0.0
+          target: android-31
+
+      # Build the APK using Gradle (assembleDebug or assembleRelease)
+      - name: Build APK (Debug)
+        run: ./gradlew assembleDebug --stacktrace
+
+      # Upload the APK file as an artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
