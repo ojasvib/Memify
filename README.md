@@ -1,6 +1,8 @@
 
 Memify
 
+![Demo GIF](./assets/demo.gif)
+
 Memify is an AI-powered meme creator that makes it easy and fun to design custom memes. With intuitive tools and intelligent captioning, Memify helps you express your ideas creatively and effectively.
 Features
 
@@ -22,7 +24,6 @@ To try out Memify:
     Download the Latest APK: Grab the latest APK file from the Releases section.
     Install and Start Meming: Install the APK on your Android device, open Memify, and dive into meme creation!
     
-
 Building Memify Yourself
 
     Go to Google AI Studio.
