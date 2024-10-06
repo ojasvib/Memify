@@ -4,7 +4,7 @@ Memify
 Memify is an AI-powered meme creator that makes it easy and fun to design custom memes. With intuitive tools and intelligent captioning, Memify helps you express your ideas creatively and effectively.
 Features
 
-    AI-Generated Captions: Use Google’s Gemini Flash model to create relevant, funny captions that match your image.
+    AI-Generated Captions: Using Google’s Gemini Flash model.
     Customizable Meme Design: Drag, rotate, and resize text for perfect alignment and style.
     Flexible Editing: Edit the generated caption to suit your style.
     Real-Time Preview: See changes instantly as you create.
