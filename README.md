@@ -15,8 +15,6 @@ Tools and Technologies
     Gemini Flash Model for AI-based captions
     MVVM Architecture
     AndroidX Libraries including Lifecycle and ViewModel
-    Retrofit and Gson for network operations
-    Hilt for Dependency Injection
     Coroutines and Flows for asynchronous processing
 
 To try out Memify:
