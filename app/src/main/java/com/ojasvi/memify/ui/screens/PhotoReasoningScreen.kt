@@ -111,7 +111,7 @@ fun PhotoReasoningContents(
                 .padding(16.dp)
                 .capturable(captureController)
         ) {
-            sourceImage(imageUri, captureController)
+            SourceImage(imageUri, captureController)
             OverlayTextCard(uiState = uiState,
                 scale,
                 rotationAngle,
@@ -143,7 +143,7 @@ fun PhotoReasoningContents(
 
 @OptIn(ExperimentalComposeApi::class)
 @Composable
-private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
+private fun SourceImage(imageUri: Uri, captureController: CaptureController) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     AsyncImage(
@@ -159,7 +159,7 @@ private fun sourceImage(imageUri: Uri, captureController: CaptureController) {
                         val bitmapPath = MediaStore.Images.Media.insertImage(
                             context.contentResolver,
                             bitmap.asAndroidBitmap(),
-                            "palette",
+                            "palette_${System.currentTimeMillis()}",
                             "share palette"
                         )
 
