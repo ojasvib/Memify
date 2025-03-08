@@ -32,6 +32,9 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2 # ✅ FIXED (Removed invalid inputs)
+      - name: Create local.properties
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Grant execute permission to Gradle wrapper # ✅ FIX: Add execute permissions
         run: chmod +x gradlew
