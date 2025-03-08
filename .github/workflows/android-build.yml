@@ -33,6 +33,9 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2 # ✅ FIXED (Removed invalid inputs)
 
+      - name: Grant execute permission to Gradle wrapper # ✅ FIX: Add execute permissions
+        run: chmod +x gradlew
+
       - name: Build APK (Debug)
         run: ./gradlew assembleDebug --stacktrace
 
