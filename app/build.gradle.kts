@@ -1,6 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
-
+val sdkDir = System.getenv("ANDROID_SDK_ROOT") ?: error("Missing ANDROID_SDK_ROOT")
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -26,6 +26,7 @@ android {
             load(FileInputStream(File(rootProject.rootDir, "local.properties")))
         }
         buildConfigField("String", "API_KEY", prop.getProperty("apiKey"))
+        buildConfigField("String", "SDK_PATH", "\"$sdkDir\"")
     }
 
     buildTypes {
