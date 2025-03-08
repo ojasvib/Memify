@@ -35,6 +35,7 @@ jobs:
       - name: Create local.properties
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "apiKey=$ANDROID_SDK_ROOT" > local.properties
 
       - name: Grant execute permission to Gradle wrapper # ✅ FIX: Add execute permissions
         run: chmod +x gradlew
